@@ -13,20 +13,22 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')
-                ->unique();
-            $table->string('firstname')
-                ->nullable();
-            $table->string('lastname')
-                ->nullable();
-            $table->string('email')
-                ->unique()
-                ->nullable();
-            $table->string('password');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('users')) {
+            Schema::create('users', function (Blueprint $table) {
+                $table->id();
+                $table->string('name')
+                    ->unique();
+                $table->string('firstname')
+                    ->nullable();
+                $table->string('lastname')
+                    ->nullable();
+                $table->string('email')
+                    ->unique()
+                    ->nullable();
+                $table->string('password');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
