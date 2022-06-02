@@ -16,4 +16,22 @@ class User extends Model implements Authenticatable
      * @var array
      */
     protected $guarded = [];
+
+    /**
+     * UserModel, RoleModel Relation. Get the users role.
+     */
+    public function role() 
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Get name of users role
+     */
+    public function getRoleName()
+    {
+        return $this->role !== null 
+            ? $this->role->name
+            : '-'; 
+    }
 }

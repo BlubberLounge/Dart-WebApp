@@ -30,24 +30,25 @@ class RoleSeeder extends Seeder
          * Permissions are defined with Laravel Policies system
          */
         Role::create([
-            'name' => 'Player',
-            'description' => 'Just a dart player.',
+            'name' => 'Admin',
+            'description' => 'Has the most permissions. should be the highest role.',
         ]);
-
+        
+        Role::create([
+            'name' => 'Management',
+            'description' => 'Placeholder role.',
+        ]);
+        
         Role::create([
             'name' => 'Game Master',
             'description' => 'Basically a player but in addition this role can control a game.',
         ]);
 
         Role::create([
-            'name' => 'Management',
-            'description' => 'Placeholder role.',
+            'name' => 'Player',
+            'description' => 'Just a dart player.',
         ]);
 
-        Role::create([
-            'name' => 'Admin',
-            'description' => 'Has the most permissions. should be the highest role.',
-        ]);
         
         // always create one initial admin / root user
         User::create([
@@ -55,7 +56,7 @@ class RoleSeeder extends Seeder
             'firstname' => 'Blubber',
             'lastname' => 'Lounge',
             'email' => 'admin@blubber-lounge.de',
-            'role_id' => 4,
+            'role_id' => 1,
             'password' => Hash::make('123'),
         ]);
     }

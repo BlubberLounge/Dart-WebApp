@@ -2,13 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpFoundation\Request;
+
+use App\Models\User;
+use App\Models\Role;
 
 class UserController extends Controller
 {
+    /**
+     * Create the controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->authorizeResource(User::class, 'user');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -16,8 +29,8 @@ class UserController extends Controller
      */
     public function index()
     {   
-        $test = Gate::allows('viewAny', User::class) ? 'ja' : 'nein';
-        return view('user.index', ['gateTest' => $test]);
+        $data['users'] = User::orderBy('id','asc')->paginate(15);
+        return view('user.index', $data);
     }
 
     /**
@@ -27,7 +40,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        $data['roles'] = Role::orderBy('id','desc')->get();
+
+        return view('user.create', $data);
     }
 
     /**
@@ -38,7 +53,18 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request)
     {
-        //
+        $u = new User;
+        $u->name = $request->name;
+        $u->firstname = $request->firstname;
+        $u->lastname = $request->lastname;
+        $u->email = $request->email;
+        $u->password =Hash::make($request->password);
+        $u->role_id = $request->role;
+
+        $u->save();
+
+        return redirect()->route('user.index')
+            ->with('success','User has been created successfully');
     }
 
     /**
@@ -49,7 +75,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        return view('user.show', $user);
     }
 
     /**
@@ -60,7 +86,10 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        //
+        $data['user'] = $user;
+        $data['roles'] = Role::orderBy('id','desc')->get();
+
+        return view('user.edit', $data);
     }
 
     /**
@@ -72,7 +101,18 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user)
     {
-        //
+        $u = User::find($user->id);
+        $u->name = $request->name;
+        $u->firstname = $request->firstname;
+        $u->lastname = $request->lastname;
+        $u->email = $request->email;
+        $u->password = $request->password ? Hash::make($request->password) : $user->password;
+        $u->role_id = $request->role;
+
+        $u->save();
+
+        return redirect()->route('user.index')
+            ->with('success','User has been updated successfully');
     }
 
     /**
@@ -83,6 +123,8 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $user->delete();
+        return redirect()->back()
+            ->with('success','User has been deleted successfully');
     }
 }
