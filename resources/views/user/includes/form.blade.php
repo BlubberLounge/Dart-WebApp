@@ -1,6 +1,9 @@
 <div class="row justify-content-center">
     <form action="{{ $action === 'create' ? route('user.store') : route('user.update', $user->id) }}" method="POST" id="userform">
         @csrf
+        @if($action !== 'create')
+            @method('PUT')
+        @endif
         <div class="mb-3">
             <label for="name" class="form-check-label">{{ __('Username') }}</label>
             <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') || $action === 'create' ? old('name') : $user->name }}" required autocomplete="off" autofocus>
@@ -55,7 +58,7 @@
             <label for="role" class="form-check-label">{{ __('Role') }}</label>
             <select id="role" name="role" form="userform" class="form-select" size="5" aria-label="size 5 select example" required>
                 @foreach($roles as $role)
-                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                    <option value="{{ $role->id }}" {{ isset($user) ? ($user->role_id === $role->id) ? 'selected' : '' : '' }}>{{ $role->name }}</option>
                 @endforeach
             </select>
         </div>

@@ -15,19 +15,19 @@
                     <th scope="col">Lastname</th>
                     <th scope="col">E-Mail</th>
                     <th scope="col">Role</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col" class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($users as $user)
                     <tr>
                         <th scope="row">{{ $user->id }}</th>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->firstname }}</td>
-                        <td>{{ $user->lastname }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>{{ $user->getRoleName() }}</td>
-                        <td class="actions">
+                        <td scope="row">{{ $user->name }}</td>
+                        <td scope="row">{{ $user->firstname }}</td>
+                        <td scope="row">{{ $user->lastname }}</td>
+                        <td scope="row">{{ $user->email }}</td>
+                        <td scope="row">{{ $user->getRoleName() }}</td>
+                        <td scope="row" class="actions text-center">
                             <form action="{{ route('user.destroy',$user->id) }}" method="Post">
                                 <a href="{{ route('user.edit',$user->id) }}">
                                     <i class="fa-solid fa-pen-to-square fa-lg"></i>

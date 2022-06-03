@@ -1,14 +1,15 @@
 <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
     <div class="container">
         <a class="navbar-brand" href="{{ url('/') }}">
-        <img src="http://media.maximilian-mewes.de/project/bl/blubber_lounge_rebrand_try.svg" alt="Dart a Web-App Logo" width="100px" style="transform:rotate(-2deg);">
+            <img src="http://media.maximilian-mewes.de/project/bl/blubber_lounge_rebrand_try.svg" alt="Dart a Web-App Logo" width="100px" style="transform:rotate(-2deg);">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
             <span class="navbar-toggler-icon"></span>
         </button>
         
-        @auth
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            @auth
                 <!-- Left Side Of Navbar -->
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -20,9 +21,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#"> History </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/user') }}"> User Management </a>
-                    </li>
+                    @can('viewAny', App\Models\User::class)
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}" href="{{ route('user.index') }}"> User Management </a>
+                        </li>
+                    @endcan
                     <li class="nav-item">
                         <a class="nav-link" href="#"> Settings </a>
                     </li>

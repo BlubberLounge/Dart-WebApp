@@ -6,6 +6,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Support\Facades\Gate;
 
 use App\Models\User;
 use App\Models\Role;
@@ -58,7 +59,7 @@ class UserController extends Controller
         $u->firstname = $request->firstname;
         $u->lastname = $request->lastname;
         $u->email = $request->email;
-        $u->password =Hash::make($request->password);
+        $u->password = Hash::make($request->password);
         $u->role_id = $request->role;
 
         $u->save();

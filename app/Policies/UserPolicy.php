@@ -10,6 +10,24 @@ class UserPolicy
     use HandlesAuthorization;
 
     /**
+     * Perform pre-authorization checks.
+     *
+     * @param  \App\Models\User  $user
+     * @param  string  $ability
+     * @return void|bool
+     */
+    public function before(User $user, $ability)
+    {
+        if(!$user->role)
+            return false;
+
+        if($user->role->id > 1)
+            return false;
+        
+        return true;
+    }
+
+    /**
      * Determine whether the user can view any models.
      *
      * @param  \App\Models\User  $user
@@ -40,7 +58,7 @@ class UserPolicy
      */
     public function create(User $user)
     {
-        return true;
+        return false;
     }
 
     /**
@@ -52,7 +70,7 @@ class UserPolicy
      */
     public function update(User $user, User $model)
     {
-        return true;
+        return false;
     }
 
     /**
@@ -64,7 +82,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model)
     {
-        return true;
+        return false;
     }
 
     /**
@@ -76,7 +94,7 @@ class UserPolicy
      */
     public function restore(User $user, User $model)
     {
-        return true;
+        return false;
     }
 
     /**
@@ -88,6 +106,6 @@ class UserPolicy
      */
     public function forceDelete(User $user, User $model)
     {
-        return true;
+        return false;
     }
 }

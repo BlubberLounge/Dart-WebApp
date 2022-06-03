@@ -28,7 +28,7 @@ class StoreUserRequest extends FormRequest
             'firstname' => 'string',
             'lastname' => 'string',
             'email' => 'email:rfc|unique:users,email',
-            'password' => 'required',
+            'password' => 'required|min:5',
             'role' => 'exists:roles,id',
         ];
     }

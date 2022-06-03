@@ -28,7 +28,7 @@ class UpdateUserRequest extends FormRequest
             'firstname' => 'nullable|string',
             'lastname' => 'nullable|string',
             'email' => 'nullable|email:rfc',
-            'password' => 'nullable|string',
+            'password' => 'nullable|min:5|string',
             'role' => 'exists:roles,id',
         ];
     }
