@@ -16,6 +16,15 @@ class Role extends Model
      */
     protected $guarded = [];
 
+    /*
+     * Define role IDs here 
+     */
+    const ADMIN = 1;
+    const MANAGEMENT = 2;
+    const GAME_MASTER = 3;
+    const PLAYER = 4;
+
+
     /**
      * Get users with this role.
      */

@@ -2,8 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+
+use App\Models\User;
+use App\Models\Role;
+
 
 class UserPolicy
 {
@@ -21,7 +24,7 @@ class UserPolicy
         if(!$user->role)
             return false;
 
-        if($user->role->id > 1)
+        if($user->role->id > Role::ADMIN)
             return false;
         
         return true;

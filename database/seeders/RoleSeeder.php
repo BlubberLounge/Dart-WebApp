@@ -30,21 +30,25 @@ class RoleSeeder extends Seeder
          * Permissions are defined with Laravel Policies system
          */
         Role::create([
+            'id' => Role::ADMIN,
             'name' => 'Admin',
             'description' => 'Has the most permissions. should be the highest role.',
         ]);
         
         Role::create([
+            'id' => Role::MANAGEMENT,
             'name' => 'Management',
             'description' => 'Placeholder role.',
         ]);
         
         Role::create([
+            'id' => Role::GAME_MASTER,
             'name' => 'Game Master',
             'description' => 'Basically a player but in addition this role can control a game.',
         ]);
 
         Role::create([
+            'id' => Role::PLAYER,
             'name' => 'Player',
             'description' => 'Just a dart player.',
         ]);
