@@ -1,3 +1,7 @@
+body {
+    font-family: 'Nunito', sans-serif;
+}
+
 a {
     text-decoration: none;
 }
@@ -5,4 +9,10 @@ a {
 .actions i {
     color: #000;
     /* font-size: 1.2em; */
+}
+
+.background-test {
+    background-image: url('/img/23964.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
 }
