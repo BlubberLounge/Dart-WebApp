@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UtillityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,10 +23,6 @@ Route::get('/', function () {
 });
 
 Auth::routes(['verify' => true]);
-
-Route::get('/test', function () { 
-    return new App\Mail\InvoicePaid($invoice);
-});
 
 /*
  * email verification routes 
@@ -50,7 +47,10 @@ Route::get('/test', function () {
 /* 
  * protected routes
  */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function ()
+{
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/checkouts/{score?}', [UtillityController::class, 'viewCheckouts'])->name('utillity.viewCheckouts');
+
     Route::resource('/user', UserController::class);
 });

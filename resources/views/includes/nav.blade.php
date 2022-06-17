@@ -21,6 +21,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#"> History </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('utillity.viewCheckouts') ? 'active' : '' }}" href="{{ route('utillity.viewCheckouts') }}"> Checkout Calculator </a>
+                    </li>
                     @can('viewAny', App\Models\User::class)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}" href="{{ route('user.index') }}"> User Management </a>
