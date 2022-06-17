@@ -150,6 +150,7 @@ class UtillityController extends Controller
     {
         $checkouts = array();
         $counter = 0;
+        $incCounter = false;
         $defaultWeight = 1.0;
 
         for($b = 2; $b <= 76; $b += 1 + ($b == 62) * 12) 
@@ -163,14 +164,20 @@ class UtillityController extends Controller
                 (int)$k = (int)($b / 3) * ($b % 3+1);
                 (int)$c = $score - $l - $k;
 
-                if($c>0 & $c<61 && $c % 3 == 0 | $c == 1 & $a >= $b && $singleOut)
+                if($c>0 & $c<61 && $c % 3 == 0 | $c == 1 & $a >= $b && $singleOut) {
                     $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName($c==1?0:$c%3, $c), $defaultWeight];
+                    $incCounter = true;
+                }
 
-                if($c>1 & $c<41 | $c == 50 && $c % 2 == 0 & $a >= $b && $doubleOut) 
+                if($c>1 & $c<41 | $c == 50 && $c % 2 == 0 & $a >= $b && $doubleOut) {
                     $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName(1, $c/2), $defaultWeight];
+                    $incCounter = true;
+                }
 
-                if($singleOut || $doubleOut || $TrippleOut)
+                if($incCounter) {
                     $counter++;
+                    $incCounter = false;
+                }
             }
 
         return $filter ? $this->getFilteredCheckouts($checkouts) : $checkouts;
