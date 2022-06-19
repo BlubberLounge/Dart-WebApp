@@ -13,16 +13,22 @@
                 <!-- Left Side Of Navbar -->
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#"> Start Game </a>
+                        <a class="nav-link disabled" href="#"> Start Game </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#"> Stats </a>
+                        <a class="nav-link disabled" href="#"> Stats </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#"> History </a>
+                        <a class="nav-link disabled" href="#"> History </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('utillity.viewCheckouts') ? 'active' : '' }}" href="{{ route('utillity.viewCheckouts') }}"> Checkout Calculator </a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('utillity.viewCheckouts') || request()->routeIs('utillity.viewDartboard')? 'active' : '' }}" id="navbarDropdown" href="#" data-bs-toggle="dropdown"> Checkout Calculator </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{{ route('utillity.viewCheckouts') }}"> Calculator </a></li>
+                            <li><a class="dropdown-item disabled" href="#"> Checkout Table </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ route('utillity.viewDartboard') }}"> behind the scenes </a></li>
+                        </ul>
                     </li>
                     @can('viewAny', App\Models\User::class)
                         <li class="nav-item">
@@ -30,7 +36,7 @@
                         </li>
                     @endcan
                     <li class="nav-item">
-                        <a class="nav-link" href="#"> Settings </a>
+                        <a class="nav-link disabled" href="#"> Settings </a>
                     </li>
                 </ul>
             @endauth

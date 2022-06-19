@@ -50,6 +50,7 @@ Auth::routes(['verify' => true]);
 Route::middleware(['auth', 'verified'])->group(function ()
 {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/checkouts/dartboard', [UtillityController::class, 'viewDartboard'])->name('utillity.viewDartboard');
     Route::get('/checkouts/{score?}', [UtillityController::class, 'viewCheckouts'])->name('utillity.viewCheckouts');
 
     Route::resource('/user', UserController::class);

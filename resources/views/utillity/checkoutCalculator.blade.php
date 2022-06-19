@@ -43,9 +43,13 @@
                 <input class="form-check-input" type="checkbox" role="switch" id="limitResults" name="limitResults" form="checkoutForm" {{ $limitResults ? 'checked' : null}}>
                 <label class="form-check-label" for="limitResults">Limit to 150 results</label>
             </div>
-            <div class="form-check form-switch pb-2">
+            <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch" id="highlightBestOption" name="highlightBestOption" form="checkoutForm" {{ $highlightBestOption ? 'checked' : null}}>
                 <label class="form-check-label" for="highlightBestOption">Highlight best option</label>
+            </div>
+            <div class="form-check form-switch pb-2">
+                <input class="form-check-input" type="checkbox" role="switch" id="showWeights" name="showWeights" form="checkoutForm" {{ $showWeights ? 'checked' : null}}>
+                <label class="form-check-label"  for="showWeights"><span class="text-muted" style="font-size: .75em;">(debug)</span> Show Weights</label>
             </div>
             <div class="text-center">
                 <div class="form-check form-check-inline">
@@ -57,7 +61,7 @@
                     <label class="form-check-label" for="doubleOut">Double-Out</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" value="true" id="trippleOut" name="trippleOut" form="checkoutForm" {{ $trippleOut ? 'checked' : null}}  disabled>
+                    <input class="form-check-input" type="checkbox" value="true" id="trippleOut" name="trippleOut" form="checkoutForm" {{ $trippleOut ? 'checked' : null}}>
                     <label class="form-check-label" for="trippleOut">Tripple-Out</label>
                 </div>
             </div>
@@ -72,38 +76,52 @@
 
     <div class="row justify-content-center">
         <div class="col">
-            <table class="table table-striped table-hover">
+            <table class="table table-striped table-hover" id="checkoutTable">
                 <thead>
                     <tr>
                         <th scope="col" style="width:100px;"><i class="fa-solid fa-hashtag"></i></th>
                         <th scope="col"><i class="fa-solid fa-1"></i>.</th>
                         <th scope="col"><i class="fa-solid fa-2"></i>.</th>
                         <th scope="col"><i class="fa-solid fa-3"></i>.</th>
+                        @if($showWeights)
+                            <th scope="col"><i class="fa-solid fa-weight-hanging"></i></th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
                     @if($checkouts_0)
-                        @if($checkoutBestOption >= 0 && $checkoutBestOption <= count($checkouts_0)-1)
-                            <tr class="table-success">
-                                <th scope="row"> BEST #{{ $checkoutBestOption }}</th>
-                                <td scope="row">{{ $checkouts_0[$checkoutBestOption][0] }}</td>
-                                <td scope="row">{{ $checkouts_0[$checkoutBestOption][1] }}</td>
-                                <td scope="row">{{ $checkouts_0[$checkoutBestOption][2] }}</td>
-                            </tr>
-                        @else 
-                            <tr class="table-success">
-                                <th scope="row"> BEST #{{ $checkoutBestOption }}</th>
-                                <td scope="row">{{ $checkouts_1[$checkoutBestOption][0] }}</td>
-                                <td scope="row">{{ $checkouts_1[$checkoutBestOption][1] }}</td>
-                                <td scope="row">{{ $checkouts_1[$checkoutBestOption][2] }}</td>
-                            </tr>
+                        @if($highlightBestOption)
+                            @if($checkoutBestOption >= 0 && $checkoutBestOption <= count($checkouts_0)-1)
+                                <tr class="table-success">
+                                    <th scope="row"> BEST #{{ $checkoutBestOption }}</th>
+                                    <td scope="row">{{ $checkouts_0[$checkoutBestOption][0] }}</td>
+                                    <td scope="row">{{ $checkouts_0[$checkoutBestOption][1] }}</td>
+                                    <td scope="row">{{ $checkouts_0[$checkoutBestOption][2] }}</td>
+                                    @if($showWeights)
+                                        <td scope="row">{{ $checkouts_0[$checkoutBestOption][3] }}</td>
+                                    @endif
+                                </tr>
+                            @else 
+                                <tr class="table-success">
+                                    <th scope="row"> BEST #{{ $checkoutBestOption }}</th>
+                                    <td scope="row">{{ $checkouts_1[$checkoutBestOption][0] }}</td>
+                                    <td scope="row">{{ $checkouts_1[$checkoutBestOption][1] }}</td>
+                                    <td scope="row">{{ $checkouts_1[$checkoutBestOption][2] }}</td>
+                                    @if($showWeights)
+                                        <td scope="row">{{ $checkouts_1[$checkoutBestOption][3] }}</td>
+                                    @endif
+                                </tr>
+                            @endif
                         @endif
                         @foreach ($checkouts_0 as $key => $checkout )
-                            <tr class="{{ $checkoutBestOption == $key ? 'table-dark' : null }}">
+                            <tr class="{{ $checkoutBestOption == $key && $highlightBestOption ? 'table-dark' : null }}">
                                 <th scope="row">{{ $key }}</th>
                                 <td scope="row">{{ $checkout[0] }}</td>
                                 <td scope="row">{{ $checkout[1] }}</td>
                                 <td scope="row">{{ $checkout[2] }}</td>
+                                @if($showWeights)
+                                    <td scope="row">{{ $checkout[3] }}</td>
+                                @endif
                             </tr>
                         @endforeach
                     @else
@@ -128,16 +146,22 @@
                         <th scope="col"><i class="fa-solid fa-1"></i>.</th>
                         <th scope="col"><i class="fa-solid fa-2"></i>.</th>
                         <th scope="col"><i class="fa-solid fa-3"></i>.</th>
+                        @if($showWeights)
+                            <th scope="col"><i class="fa-solid fa-weight-hanging"></i></th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
                     @if($checkouts_1)
                         @foreach ($checkouts_1 as $key => $checkout )
-                            <tr class="{{ $checkoutBestOption == $key ? 'table-dark' : null }}">
+                            <tr class="{{ $checkoutBestOption == $key && $highlightBestOption ? 'table-dark' : null }}">
                                 <th scope="row">{{ $key }}</th>
                                 <td scope="row">{{ $checkout[0] }}</td>
                                 <td scope="row">{{ $checkout[1] }}</td>
                                 <td scope="row">{{ $checkout[2] }}</td>
+                                @if($showWeights)
+                                    <td scope="row">{{ $checkout[3] }}</td>
+                                @endif
                             </tr>
                         @endforeach
                     @else

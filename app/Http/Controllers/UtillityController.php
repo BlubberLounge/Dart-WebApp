@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Classes\Dartboard;
 
 class UtillityController extends Controller
 {
@@ -31,16 +32,23 @@ class UtillityController extends Controller
         $trippleOut = $request->input('trippleOut', false);
 
         $limitResults = $request->input('limitResults', !$default);        
-        $highlightBestOption = $request->input('highlightBestOption', false);
+        $highlightBestOption = $request->input('highlightBestOption', !$default);
+        $showWeights = $request->input('showWeights', false);
 
         $maxResults = $limitResults ? 150 : null;
+        $bestOption = null;
 
         $time_pre = microtime(true);
         $checkouts = $this->calculateCheckouts($score, true, $maxResults, $singleOut, $doubleOut, $trippleOut);
         $time_post = microtime(true);
 
-        $bestOption = $this->evaluateCheckouts($checkouts);
         $checkoutNumOfPossibilities = sizeof($checkouts);
+
+        $this->sortCheckouts($checkouts);
+        $bestOption = $this->evaluateCheckouts($checkouts);
+        
+
+        
 
         $checkoutsChunked = array();
 
@@ -48,7 +56,8 @@ class UtillityController extends Controller
             if($checkoutNumOfPossibilities % 2 == 0 ) {
                 $checkoutsChunked = array_chunk($checkouts, $checkoutNumOfPossibilities/2, true);
             } else {
-                $checkoutsChunked = array_chunk($checkouts, ($checkoutNumOfPossibilities-1)/2, true);;
+                $checkoutsChunked = array_chunk($checkouts, ($checkoutNumOfPossibilities-1)/2, true);
+                $checkoutsChunked[1][$checkoutNumOfPossibilities-1] = $checkouts[$checkoutNumOfPossibilities-1];
             }
         } else {
             $checkoutsChunked[0] = $checkouts;
@@ -62,8 +71,9 @@ class UtillityController extends Controller
         $data["checkouts_1"] = $checkoutsChunked[1];
         $data["score"] = $score;
         $data["execTime"] = round($time_post - $time_pre, 2);
-        $data["highlightBestOption"] = $highlightBestOption;
         $data["limitResults"] = $limitResults;
+        $data["highlightBestOption"] = $highlightBestOption;
+        $data["showWeights"] = $showWeights;
         $data["singleOut"] = $singleOut;
         $data["doubleOut"] = $doubleOut;
         $data["trippleOut"] = $trippleOut;
@@ -81,59 +91,124 @@ class UtillityController extends Controller
         $highestValue = 0.0;
         $bestOption = 0;
 
-        $good = ["20", "D20", "T20", "3", "D3", "T3", "Bull", "Bullseye"];
-        $goodValue = .5;
+        $good = ["20", "D20", "T20", "3", "T3", "Bull", "Bullseye"];
+        $goodValue = .25;
 
-        $okay = ["T14", "T11", "T8", "T13", "T6", "T10", "T19", "T18", "T12", "9", "1", "D1", "T1", "5", "T5"];
-        $okayValue = .2;
+        $okay = ["T14", "T11", "T8", "T13", "T6", "T10", "T19", "T18", "T12", "9", "1", "T1", "5", "T5"];
+        $okayValue = .1;
 
-        $bad = ["2", "D2", "T2", "7", "D7", "T7", "4", "D4", "T4", "6", "D6", "15", "D15", "T15", "D17", "T17"];
-        $badValue = -.25;
+        $bad = ["2", "D2", "T2", "7", "D7", "T7", "D3", "4", "D4", "T4", "6", "D6", "15", "D15", "T15", "D17", "T17"];
+        $badValue = -.1;
 
         foreach($checkouts as $i => $co) {
             $weightPos = count($co)-1;
+            $weight = &$checkouts[$i][$weightPos];
+
             foreach($co as $j => $val) {
-                if($j == $weightPos)
-                    break;
+                if($j >= $weightPos)
+                    continue;
                 
+                if(empty($val))
+                    $weight += $goodValue*2;
+
+                if($j > 0)
+                    if($val === $co[$j-1])
+                        $weight += $goodValue*1.10;
+
                 if(in_array($val, $good))
-                    $checkouts[$i][$weightPos] += $goodValue;
+                    $weight += $goodValue;
                 
                 else if(in_array($val, $okay))
-                    $checkouts[$i][$weightPos] += $okayValue;
+                    $weight += $okayValue;
 
                 else if(in_array($val, $bad))
-                    $checkouts[$i][$weightPos] += $badValue;
+                    $weight += $badValue;
 
                 else {
 
-                } 
+                }
             }
 
-            if($highestValue < $checkouts[$i][$weightPos]) {
-                $highestValue = $checkouts[$i][$weightPos];
+            // https://stackoverflow.com/questions/3148937/compare-floats-in-php
+            if($highestValue < $weight) {
+                $highestValue = $weight;
                 $bestOption = $i;
             }
-
         }
 
         return $bestOption;
     }
 
     /**
+     * sort by
+     * 1. low throw count first
+     * 2. low throw value first
+     * 
+     * @param array &$checkouts
+     * @return void
+     */
+    private function sortCheckouts(array &$checkouts)
+    {
+        if(empty($checkouts))
+            return $checkouts;
+
+        $preSortedThrows = array();
+        $tmp = array();
+        $maxThrows = count($checkouts[0])-1;
+
+        // usort($checkouts, function($a, $b)
+        // {
+        //     $counterA = count($a) - count(array_filter($a, 'is_null'));
+        //     $counterB = count($b) - count(array_filter($b, 'is_null'));
+
+        //     return $counterA <=> $counterB;
+        // });
+
+        foreach($checkouts as $i => $co) {
+            $numOfThrows = $maxThrows - count(array_filter($co, 'is_null'));
+
+            $preSortedThrows[$numOfThrows][$i] = $co;
+        }
+
+        for($i=$maxThrows; $i>=0; $i--) {
+            if(!array_key_exists($i, $preSortedThrows))
+                continue;
+
+            usort($preSortedThrows[$i], function($a, $b)
+            {
+                // sort by value of first throw
+                return $this->splitFieldName($a[0])[1] <=> $this->splitFieldName($b[0])[1];
+                
+                // sort by weight
+                // return $a[3] <=> $b[3];
+            });
+
+            // sort ascending
+            $tmp = array_merge($preSortedThrows[$i], $tmp);
+        }
+
+        $checkouts = $tmp;
+    }
+
+    /**
      * Remove null values and move forward the values when last throw is null
      * 
-     *
+     * @param array $checkouts
      * @return array with filtered checkouts
      */
     private function getFilteredCheckouts(array $checkouts) 
     {
-        for($i=0;$i<=count($checkouts)-1;$i++) {
-            $len = count($checkouts[$i])-1;
-            for($j=0;$j<=$len;$j++) {
-                if(!$checkouts[$i][$len-$j]) {
-                    $checkouts[$i][$len-$j] = $checkouts[$i][$j%$len==0?1:$j%$len]; // OR index=$len-$j+1
-                    $checkouts[$i][$len-$j+1] = null;
+        for($i=0; $i<=count($checkouts)-1; $i++){
+            $len = count($checkouts[$i])-2;
+            for($j=0; $j<=$len; $j++){
+                if(!$checkouts[$i][$j]) {
+                    for($k=$j; $k<=$j+($len-$j); $k++) {
+                        if(!empty($checkouts[$i][$k])) {
+                            $checkouts[$i][$j] = $checkouts[$i][$k];
+                            $checkouts[$i][$k] = null;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -151,7 +226,7 @@ class UtillityController extends Controller
         $checkouts = array();
         $counter = 0;
         $incCounter = false;
-        $defaultWeight = 1.0;
+        $defaultWeight = 1.01;
 
         for($b = 2; $b <= 76; $b += 1 + ($b == 62) * 12) 
             for($a = 2; $a <= 76; $a += 1 + ($a == 62) * 12) 
@@ -164,13 +239,18 @@ class UtillityController extends Controller
                 (int)$k = (int)($b / 3) * ($b % 3+1);
                 (int)$c = $score - $l - $k;
 
-                if($c>0 & $c<61 && $c % 3 == 0 | $c == 1 & $a >= $b && $singleOut) {
-                    $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName($c==1?0:$c%3, $c), $defaultWeight];
+                if($c>0 & $c<21 | $c == 25 && $a >= $b && $singleOut) {
+                    $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName(0, $c), $defaultWeight];
                     $incCounter = true;
                 }
 
                 if($c>1 & $c<41 | $c == 50 && $c % 2 == 0 & $a >= $b && $doubleOut) {
                     $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName(1, $c/2), $defaultWeight];
+                    $incCounter = true;
+                }
+
+                if($c>2 & $c<61 && $c % 3 == 0 & $a >= $b & $a >= $c &&$TrippleOut) {
+                    $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName(2, $c/3), $defaultWeight];
                     $incCounter = true;
                 }
 
@@ -188,37 +268,97 @@ class UtillityController extends Controller
      * 
      * @param int $symboleId field prefix
      * @param int $value field value
-     * @return String|null
+     * @return string|null
      */
-    private function resovleFieldName(int $symboleId, int $value)
+    private function resovleFieldName(int $prefixId, int $value)
     {
-        /*
-         * null = Single
-         * D = Double
-         * T = Tripple
-         * Bull = Green
-         * Bullseye = Red
-         */
-        $s = [null, "D", "T", "Bull", "Bullseye"];
-
         // no useful throw
-        if($value < 1) {
-            $symboleId = 0;
-            $value = null;
-        }
+        if($value < 1)
+            return null;
 
         // translate Bullseye
-        if($value == 25 && $symboleId == 1) {
-            $symboleId = 4;
+        if($value == 25 && $prefixId == 1) {
+            $prefixId = 4;
             $value = null;
         }
 
         // translate Bull
-        if($value == 25) {
-            $symboleId = 3;
+        if($value == 25 && $prefixId == 0) {
+            $prefixId = 3;
             $value = null;
         }
 
-        return $s[$symboleId].$value;
+        $prefix = $this->resolveFieldPrefix($prefixId);
+        return $prefix ? $prefix.$value : $value;
+    }
+
+    /**
+     *
+     * null = Single
+     * D = Double
+     * T = Tripple
+     * Bull = Green
+     * Bullseye = Red
+     * 
+     * @param int $prefixId
+     * @return string|array
+     */
+    private function resolveFieldPrefix(int $prefixId = null)
+    {
+        $fieldPrefixes = [null, "D", "T", "Bull", "Bullseye"];
+
+        return is_null($prefixId) ? $fieldPrefixes : $fieldPrefixes[$prefixId];
+    }
+
+    /**
+     * 
+     * @param string|null $field
+     * @return array
+     */
+    public function splitFieldName(string|null $field)
+    {
+        $fieldParts = preg_split('/(?<=[a-z])(?=\d)/i', $field);
+        
+        if(sizeOf($fieldParts) == 1) {
+            $fieldParts[0] = intval($fieldParts[0]);
+            $fieldParts[] = null;
+            $fieldParts = array_reverse($fieldParts);
+        } else {
+            $fieldParts[1] = intval($fieldParts[1]);
+        }
+
+        return [$fieldParts[0], $fieldParts[1]];
+    }   
+
+    /**
+     * 
+     */
+    public function isValidField(string $field)
+    {
+        $fieldParts = $this->splitFieldName($field);
+
+        if($fieldParts[0])
+            if(!in_array($fieldParts[0], $this->resolveFieldPrefix()))
+                return false;
+
+        if($fieldParts[1] > 20 || $fieldParts[0] < 0)
+            return false;
+
+
+        return true;
+    }
+
+    public function viewDartboard()
+    {
+        $dartboard = new Dartboard();
+        $avg = $dartboard->calculateBoardAverages();
+
+        $data = array();
+        $data["dartboard"] = $dartboard->board;
+        $data["dartboardAverages"] = $avg;
+        $data["dartboardHeat"] = $dartboard->getHeat($dartboard->board);
+        $data["dartboardAveragesHeat"] = $dartboard->getHeat($avg);
+
+        return view('utillity.dartboard', $data);
     }
 }
