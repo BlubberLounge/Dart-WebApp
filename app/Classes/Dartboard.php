@@ -2,11 +2,26 @@
 
 namespace App\Classes;
 
-class Dartboard {
 
+/**
+ * Dartboard
+ */
+class Dartboard
+{
+    /**
+     * @var array
+     */
     public const FIELD_VALUES = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9 ,12, 5];
+        
+    /**
+     * @var array
+     */
     public $board;
-
+    
+    /**
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->board = $this->generateBoard();
@@ -16,20 +31,23 @@ class Dartboard {
      * auto generate getter and setter
      * 
      */
-    function __call($method, $params)
-    {
-        $var = lcfirst(substr($method, 3));
+//     function __call($method, $params)
+//     {
+//         $var = lcfirst(substr($method, 3));
    
-        if (strncasecmp($method, "get", 3) === 0) {
-            return $this->$var;
-        }
-        if (strncasecmp($method, "set", 3) === 0) {
-            $this->$var = $params[0];
-        }
-   }
+//         if (strncasecmp($method, "get", 3) === 0) {
+//             return $this->$var;
+//         }
+//         if (strncasecmp($method, "set", 3) === 0) {
+//             $this->$var = $params[0];
+//         }
+//    }
 
     /**
      * 
+     * @param array|null $field_values
+     * @param bool $extra
+     * @return array
      */
     public function generateBoard(array $field_values = null, bool $extra = false) 
     {
@@ -47,10 +65,12 @@ class Dartboard {
 
         return $board;
     }
-
+  
     /**
      * only use when board got generated with $extra flag = true
-     * 
+     *
+     * @param array &$board
+     * @return void
      */
     public function cleanGeneratedBoard(array &$board)
     {
@@ -63,26 +83,33 @@ class Dartboard {
 
         unset($board[sizeOf($board)-1]);
         unset($board[sizeOf($board)-1]);
-
-        return true;
     }
 
     /**
+     * Generate a heatmap from the given dartboard
      * 
+     * @param array $board
+     * @param int $minThreshold
+     * @param int $maxScalar
+     * @return array with heat values
      */
-    public function getHeat(array $board) 
+    public function getHeat(array $board, bool $twoDecimal = false, int $minThreshold = 0, int $maxScalar = 1) 
     {
         $heat = array();
 
         foreach($board as $i => $r)
-            foreach($r as $j => $c)
-                $heat[$i][$j] = $this->map($board[$i][$j], 0, $this->getMaxValue($board), 0, 100);
-        
+            foreach($r as $j => $c) {
+                $mappedValue = ($this->map($board[$i][$j], $minThreshold, $this->getMaxValue($board)*$maxScalar, 0, 100))/100;
+                $heat[$i][$j] = $mappedValue < 0 ? 0 : ($twoDecimal ? round($mappedValue, 2) : $mappedValue);
+            }
+
         return $heat;
     }
 
     /**
+     * Calculates average of nearest neighbour field values
      * 
+     * @return array
      */
     public function calculateBoardAverages()
     {
@@ -112,20 +139,14 @@ class Dartboard {
 
         $this->cleanGeneratedBoard($newBoard);
 
-        // for($i=1; $i <= sizeof($newBoard)-3; $i++) {
-        //     echo 'Field: ' . $board[$i][1] . ' --- ';
-        //     // echo '<ol>';
-        //     for($j=0; $j <= sizeof($newBoard[$i])-2; $j++)
-        //         echo '<span style="color:rgba(255,0,0,'.$this->map($newBoard[$i][$j], 0, 35, 0, 100).')">'.$newBoard[$i][$j] ."</span> - ";
-        //     echo '<br>';
-        // }
-
         return $newBoard;
     }
 
     /**
      * Get max value of a 2D-Array
      * 
+     * @param array $arr
+     * @return int
      */
     public function getMaxValue(array $arr)
     {
@@ -133,21 +154,44 @@ class Dartboard {
 
         foreach($arr as $val)
             foreach($val as $key => $val1)
-                if ($val1 > $max)
+                if($val1 > $max)
                     $max = $val1;
 
         return $max;
+
+        // modern solution
+        // return max(array_column($arr, 0));
     }
 
     /**
+     * Find the corresponding value from a certain domain to another domain
      * 
+     * Example: 
+     * - Input range: 0deg - 180deg
+     * - desired Out range: 0 - 1023
+     * - 0deg crresponds to 0 and 180deg corresponds to 1023
+     * - When x is 180deg/2 then the method would return 1023/2
+     * 
+     * 
+     * @param float $x
+     * @param float $in_min
+     * @param float $in_max
+     * @param float $out_min
+     * @param float $out_max
+     * @return int|float value range [0, 1]
      */
     public function map(float $x, float $in_min, float $in_max, float $out_min, float $out_max)
     {
-        return (($x - $in_min) * ($out_max - $out_min) / ($in_max - $in_min) + $out_min)/100;
+        return ($x - $in_min) * ($out_max - $out_min) / ($in_max - $in_min) + $out_min;
     }
 
-    public function transpose($array)
+    /**
+     * Transpose given array. Switch rows and columns
+     * 
+     * @param array $array
+     * @return array that is transposed
+     */
+    public function transpose(array $array)
     {
         return array_map(null, ...$array);
     }

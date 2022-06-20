@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Classes\Dartboard;
 
+
+/**
+ * UtillityController
+ */
 class UtillityController extends Controller
 {
     /**
@@ -18,7 +22,7 @@ class UtillityController extends Controller
     }
 
     /**
-     * Show possible checkouts
+     * Show all possible checkouts with a given score
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -82,6 +86,7 @@ class UtillityController extends Controller
     }
 
     /**
+     * evaluate each checkout option by calculating and appyling a weight
      * 
      * @param array &$checkouts to evaluate 
      * @return int index with the best checkout option
@@ -129,7 +134,6 @@ class UtillityController extends Controller
                 }
             }
 
-            // https://stackoverflow.com/questions/3148937/compare-floats-in-php
             if($highestValue < $weight) {
                 $highestValue = $weight;
                 $bestOption = $i;
@@ -169,12 +173,15 @@ class UtillityController extends Controller
 
             $preSortedThrows[$numOfThrows][$i] = $co;
         }
-
+        
+        // sort ascending
         for($i=$maxThrows; $i>=0; $i--) {
             if(!array_key_exists($i, $preSortedThrows))
                 continue;
 
-            usort($preSortedThrows[$i], function($a, $b)
+            $prefixes = $this->resolveFieldPrefix();
+
+            usort($preSortedThrows[$i], function($a, $b) use ($prefixes)
             {
                 // sort by value of first throw
                 return $this->splitFieldName($a[0])[1] <=> $this->splitFieldName($b[0])[1];
@@ -183,7 +190,6 @@ class UtillityController extends Controller
                 // return $a[3] <=> $b[3];
             });
 
-            // sort ascending
             $tmp = array_merge($preSortedThrows[$i], $tmp);
         }
 
@@ -191,7 +197,7 @@ class UtillityController extends Controller
     }
 
     /**
-     * Remove null values and move forward the values when last throw is null
+     * fill empty array spaces by moving values forward 
      * 
      * @param array $checkouts
      * @return array with filtered checkouts
@@ -217,23 +223,27 @@ class UtillityController extends Controller
     }
 
     /**
-     * 
-     * @param int $score Score of a player (between 2 and 170; 2 = lowest possible checkout, 170 = highest possible checkout)
-     * @return array with all possible checkouts with 3 Darts
+     * Calculate checkouts with a given score
+     *
+     * @param  int $score
+     * @param  bool $filter
+     * @param  int $maxResults
+     * @param  bool $singleOut
+     * @param  bool $doubleOut
+     * @param  bool $TrippleOut
+     * @return array with all possible checkouts (3 Darts)
      */
-    private function calculateCheckouts(int $score, bool $filter = true, int $maxResults = null, bool $singleOut = false, bool $doubleOut = true, bool $TrippleOut = false)
+    private function calculateCheckouts(int $score, bool $filter = true, int $maxResults = 0, bool $singleOut = false, bool $doubleOut = true, bool $TrippleOut = false)
     {
         $checkouts = array();
         $counter = 0;
-        $incCounter = false;
         $defaultWeight = 1.01;
 
         for($b = 2; $b <= 76; $b += 1 + ($b == 62) * 12) 
             for($a = 2; $a <= 76; $a += 1 + ($a == 62) * 12) 
             {
-                if($maxResults)
-                    if($counter >= $maxResults)
-                        break 2; // stop inner and outer for loop
+                if($maxResults > 0 && $counter >= $maxResults)
+                    break 2; // stop inner and outer for loop
 
                 (int)$l = (int)($a / 3) * ($a % 3+1);
                 (int)$k = (int)($b / 3) * ($b % 3+1);
@@ -241,22 +251,17 @@ class UtillityController extends Controller
 
                 if($c>0 & $c<21 | $c == 25 && $a >= $b && $singleOut) {
                     $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName(0, $c), $defaultWeight];
-                    $incCounter = true;
+                    $counter++;
                 }
 
                 if($c>1 & $c<41 | $c == 50 && $c % 2 == 0 & $a >= $b && $doubleOut) {
                     $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName(1, $c/2), $defaultWeight];
-                    $incCounter = true;
+                    $counter++;
                 }
 
                 if($c>2 & $c<61 && $c % 3 == 0 & $a >= $b & $a >= $c &&$TrippleOut) {
                     $checkouts[] = [$this->resovleFieldName($a%3, $a/3), $this->resovleFieldName($b%3, $b/3), $this->resovleFieldName(2, $c/3), $defaultWeight];
-                    $incCounter = true;
-                }
-
-                if($incCounter) {
                     $counter++;
-                    $incCounter = false;
                 }
             }
 
@@ -266,9 +271,9 @@ class UtillityController extends Controller
     /**
      * resolve score / field names
      * 
-     * @param int $symboleId field prefix
+     * @param int $prefixId field prefix
      * @param int $value field value
-     * @return string|null
+     * @return null|int|string Fieldname
      */
     private function resovleFieldName(int $prefixId, int $value)
     {
@@ -293,15 +298,14 @@ class UtillityController extends Controller
     }
 
     /**
-     *
-     * null = Single
-     * D = Double
-     * T = Tripple
-     * Bull = Green
-     * Bullseye = Red
+     * null = Single;
+     * D = Double;
+     * T = Tripple;
+     * Bull = Green;
+     * Bullseye = Red;
      * 
      * @param int $prefixId
-     * @return string|array
+     * @return null|string|(null|string)[] resolved fieldname. when null is returned field is normal single value
      */
     private function resolveFieldPrefix(int $prefixId = null)
     {
@@ -311,6 +315,7 @@ class UtillityController extends Controller
     }
 
     /**
+     * Split a given dartboard fieldname
      * 
      * @param string|null $field
      * @return array
@@ -327,13 +332,15 @@ class UtillityController extends Controller
             $fieldParts[1] = intval($fieldParts[1]);
         }
 
-        return [$fieldParts[0], $fieldParts[1]];
+        return [$fieldParts[0], $fieldParts[1] ? $fieldParts[1] : null ];
     }   
 
     /**
      * 
+     * @param string|null $field
+     * @return bool true when valid, false when invalid
      */
-    public function isValidField(string $field)
+    public function isValidField(string|null $field)
     {
         $fieldParts = $this->splitFieldName($field);
 
@@ -348,6 +355,9 @@ class UtillityController extends Controller
         return true;
     }
 
+    /**
+     * 
+     */
     public function viewDartboard()
     {
         $dartboard = new Dartboard();
@@ -356,8 +366,8 @@ class UtillityController extends Controller
         $data = array();
         $data["dartboard"] = $dartboard->board;
         $data["dartboardAverages"] = $avg;
-        $data["dartboardHeat"] = $dartboard->getHeat($dartboard->board);
-        $data["dartboardAveragesHeat"] = $dartboard->getHeat($avg);
+        $data["dartboardHeat"] = $dartboard->getHeat($dartboard->board, true);
+        $data["dartboardAveragesHeat"] = $dartboard->getHeat($avg, true, 18, 1.5);
 
         return view('utillity.dartboard', $data);
     }

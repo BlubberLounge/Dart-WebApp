@@ -51,10 +51,10 @@
     
     <div class="row pb-4 pt-2">
         <h3 class="col-8">
-            Heatmap: Average of nearest neighbor Wedge/Field values
+            Heatmap: Average of nearest neighbour Wedge/Field values
         </h3>
         <small class="text-muted">
-            Description: TODO Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque, nesciunt earum. Voluptatibus tempore corrupti odio ut cumque Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque, nesciunt earum. porro enim, iste optio molestiae dignissimos soluta sapiente nam similique officia fugiat sit.
+            Description: This Dartboard chart shows the average value of nearby wedges/fields. In other words... fields down below with a high number have a field with high values next to them. Therefore they're a good choice in case your throws aren't that accurate and or you fear to miss the desired target field.
         </small>
     </div>
 
@@ -63,13 +63,13 @@
             <ul class="dartboard_ring">
                 @for($i=2; $i <= sizeOf($dartboardAverages[0])-1; $i++)
                     @foreach($dartboardAverages as $j => $row)
-                        <li class="text-center" style="--item-count:{{ $j }};--radius: {{ ($i+1.8)*3.4 }}rem;color:rgba(255,0,0,{{ $dartboardAveragesHeat[$j][sizeOf($dartboard[0])-1-$i] }});">
+                        <li class="text-center" style="--item-count:{{ $j }};--radius: {{ ($i+1)*3.4 }}rem;color:rgba(255,0,0,{{ $dartboardAveragesHeat[$j][sizeOf($dartboard[0])-1-$i] }});">
                             {{ round($row[sizeOf($dartboard[0])-1-$i], 1) }}
                         </li>
                     @endforeach
                 @endfor
                 @foreach($dartboard as $j => $row)
-                    <li class="text-center" style="--item-count:{{ $j }};--radius: 10rem;color:#32a63b;font-weight: bold;">
+                    <li class="text-center" style="--item-count:{{ $j }};--radius: 7rem;color:#32a63b;font-weight: bold;">
                             {{ $row[1] }}
                     </li>
                 @endforeach
