@@ -16,3 +16,34 @@ a {
     background-repeat: no-repeat;
     background-size: cover;
 }
+
+#checkoutTable tbody td,
+#checkoutTable th + th {
+    text-align: center;
+}
+
+.dartboard {
+    /* --radius: 20rem; */
+    --offset: -90deg;
+    --item-total: 20;
+    min-height: 90vh;
+    /* transform: scale(.45); */
+}
+
+.dartboard_ring {
+    position: relative;
+    list-style: none;
+}
+
+.dartboard_ring > * {
+    display: block;
+    position: absolute;
+    margin: -3em;
+    width: 2.8em;
+    border-radius: .5rem;
+    --angle: calc(360deg/var(--item-total));
+    --rotation: calc(var(--offset) + var(--angle)*var(--item-count));
+    transform: rotate(var(--rotation)) 
+                translate(var(--radius)) 
+                rotate(calc(var(--rotation)*-1));
+}
