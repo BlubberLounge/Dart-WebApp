@@ -35,7 +35,6 @@
                         </button>
                     </div>
                 </div>
-                @csrf
             </form>
         </div>
         <div class="col-5 d-flex flex-column justify-content-center">

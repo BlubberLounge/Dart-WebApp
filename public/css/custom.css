@@ -47,3 +47,19 @@ a {
                 translate(var(--radius)) 
                 rotate(calc(var(--rotation)*-1));
 }
+
+.well {
+    position: relative;
+    border-radius: .475rem;
+    border: 2px solid var(--bs-gray-300);
+    padding: 1.75rem;
+}
+
+.well-header {
+    position: absolute;
+    top: -1rem;
+    background-color: #f8fafc;
+    padding: 0 1rem 0 1rem;
+    font-weight: bold;
+    font-size: 1.1em;
+}

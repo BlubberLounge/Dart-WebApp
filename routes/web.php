@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UtillityController;
+use App\Http\Controllers\GameController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,11 +48,23 @@ Auth::routes(['verify' => true]);
 /* 
  * protected routes
  */
-Route::middleware(['auth', 'verified'])->group(function ()
+
+Route::middleware(['auth'])->group(function ()
 {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/checkouts/dartboard', [UtillityController::class, 'viewDartboard'])->name('utillity.viewDartboard');
-    Route::get('/checkouts/{score?}', [UtillityController::class, 'viewCheckouts'])->name('utillity.viewCheckouts');
 
+    Route::prefix('checkouts')->group(function ()
+    {
+        Route::get('/dartboard', [UtillityController::class, 'viewDartboard'])->name('utillity.viewDartboard');
+        Route::get('/{score?}', [UtillityController::class, 'viewCheckouts'])->name('utillity.viewCheckouts');
+    });
+
+});
+
+Route::middleware(['auth', 'verified'])->group(function ()
+{
     Route::resource('/user', UserController::class);
+    
+    Route::resource('/game', GameController::class);
+
 });

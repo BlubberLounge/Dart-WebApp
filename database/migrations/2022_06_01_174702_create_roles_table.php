@@ -14,7 +14,8 @@ return new class extends Migration
     public function up()
     {
         if (!Schema::hasTable('roles')) {
-            Schema::create('roles', function (Blueprint $table) {
+            Schema::create('roles', function (Blueprint $table)
+            {
                 $table->id();
                 $table->string('name');
                 $table->string('description')
@@ -22,8 +23,10 @@ return new class extends Migration
                 $table->timestamps();
             });
 
-            Schema::table('users', function (Blueprint $table) {
-                $table->after('password', function ($table) {
+            Schema::table('users', function (Blueprint $table)
+            {
+                $table->after('password', function ($table)
+                {
                     $table->foreignId('role_id')
                         ->nullable()
                         ->constrained('roles')
@@ -41,12 +44,13 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('roles');
-
-        if (Schema::hasTable('users')) {
+        if (Schema::hasTable('users'))
+        {
             Schema::table('users', function (Blueprint $table) {
                 $table->dropForeign(['role_id']);
             });
         }
+        
+        Schema::dropIfExists('roles');
     }
 };

@@ -18,7 +18,7 @@ class UtillityController extends Controller
      */
     public function __construct()
     {
-
+        
     }
 
     /**

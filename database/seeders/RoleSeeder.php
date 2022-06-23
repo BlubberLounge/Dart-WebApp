@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 use App\Models\Role;
@@ -19,7 +18,6 @@ class RoleSeeder extends Seeder
      */
     public function run()
     {
-        
         Schema::disableForeignKeyConstraints();
         // delete all role table columns and reset the increment counter
         Role::truncate();
@@ -51,17 +49,6 @@ class RoleSeeder extends Seeder
             'id' => Role::PLAYER,
             'name' => 'Player',
             'description' => 'Just a dart player.',
-        ]);
-
-        
-        // always create one initial admin / root user
-        User::create([
-            'name' => 'Admin',
-            'firstname' => 'Blubber',
-            'lastname' => 'Lounge',
-            'email' => 'admin@blubber-lounge.de',
-            'role_id' => 1,
-            'password' => Hash::make('123'),
         ]);
     }
 }
