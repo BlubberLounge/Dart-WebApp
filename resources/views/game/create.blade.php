@@ -52,7 +52,16 @@
                     <div class="well-header">
                         Dartboard
                     </div>
-                    {{-- list all availabe dartboards here --}}
+                    <div class="row d-flex justify-content-evenly">
+                    @foreach($dartboards as $d)
+                        <div class="col p-1 mb-2 text-center">
+                            <img src="{{ asset($d->image_path) }}" class="rounded" alt="picture of a dartboard" width="60px">
+                            <p class="my-1 p-1 lh-1 h-25" style="font-size:.75rem;">{{ $d->name }}</p>
+                            <input type="radio" class="btn-check" name="dartboard" id="dartboard{{ $d->id }}" value="{{ $d->uuid }}" autocomplete="off" {{ $d->isAvailable() ?: 'disabled' }} required>
+                            <label class="btn btn-primary btn-sm" for="dartboard{{ $d->id }}">{{ $d->isAvailable() ? 'choose' : 'in-game' }}</label>
+                        </div>
+                    @endforeach
+                    </div>
                 </div>
             </div>
         </div>
@@ -67,7 +76,7 @@
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dataPlayer{{ $user->id }}">
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="btnAddPlayer{{ $user->id }}" name="player[]" value="{{ $user->id }}" checked>
+                                        <input class="form-check-input" type="checkbox" role="switch" id="btnAddPlayer{{ $user->id }}" name="players[]" value="{{ $user->id }}" checked>
                                     </div>
                                     <div class="d-inline">
                                         <img src="{{ asset('img/user/bl_placeholder.png') }}" class="rounded me-1" alt="user profile image" width="25px">
@@ -114,7 +123,7 @@
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dataPlayer{{ $p->id }}">
                                         <input type="checkbox" class="btn-check" id="btnAddPlayer{{ $p->id }}">
                                         <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" role="switch" id="btnAddPlayer{{ $p->id }}" name="player[]" value="{{ $p->id }}">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="btnAddPlayer{{ $p->id }}" name="players[]" value="{{ $p->id }}">
                                         </div>
 
                                         <div class="d-inline">

@@ -23,19 +23,19 @@ class UserSeeder extends Seeder
     {
         // user that own a Dartboard
         User::factory()
-            ->count(rand(8, 13))
+            ->count(rand(5, 13))
             ->hasDartboard(1)
             ->create();
 
         // user that have created a game
         User::factory()
             ->count(rand(9, 21))
-            ->hasGameCreated(rand(2,11))
+            ->hasGameCreated(rand(2,5))
             ->create();
 
         // in-game User
         User::factory()
-            ->count(rand(21, 33))
+            ->count(rand(3, 11))
             ->hasGame(rand(2, 11))
             ->hasThrows(rand(36, 78))
             ->create();

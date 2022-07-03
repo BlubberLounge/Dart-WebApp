@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 use App\Http\Requests\StoreGameRequest;
-
+use App\Http\Requests\UpdateGameRequest;
+use App\Models\Dartboard;
 use App\Models\Game;
 use App\Models\User;
 
@@ -44,11 +46,13 @@ class GameController extends Controller
      */
     public function create()
     {
-        $u = new User;
+        $u = new User();
+        $d = new Dartboard();
 
         $data = array();
         $data['user'] = Auth::user();
         $data['players'] = $u->getAllPlayers();
+        $data['dartboards'] = $d->getAllActive();
 
         return view('game.create', $data);
     }
@@ -61,21 +65,29 @@ class GameController extends Controller
      */
     public function store(StoreGameRequest $request)
     {
-        $u = new Game();
+        $g = new Game();
+        $g->uuid = Str::uuid()->toString();
 
-        $u->save();
+    
+        $g->save();
 
-        return redirect()->route('game.index', $u->id)
-            ->with('success','User has been created successfully');
+        foreach($request->players as $p)
+        {
+            // TODO check if player is available
+            $u = User::find($p)->get();
+            $u->game_id = $g->id;
+        }
+
+        return redirect()->route('game.show', $g->id);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Game  $user
+     * @param  \App\Models\Game  $game
      * @return \Illuminate\Http\Response
      */
-    public function show(Game $user)
+    public function show(Game $game)
     {
         dd('test');
     }

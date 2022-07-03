@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Classes\Dartboard;
+use App\Classes\Wedge;
 use Illuminate\Http\Request;
 
 use App\Models\User;
@@ -28,6 +30,9 @@ class HomeController extends Controller
      */
     public function index()
     {
+        $d = new Dartboard();
+
+        dd($d->getWedgeValue(10, 361.11, true));
         return view('home');
     }
 }

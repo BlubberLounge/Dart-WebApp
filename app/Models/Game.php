@@ -58,9 +58,12 @@ class Game extends Model
         return $this->belongsTo(Gamemode::class);
     }
 
+    /**
+     * 
+     */
     public function dartboard()
     {
-        $this->belongsTo(Dartboard::class);
+        return $this->belongsTo(Dartboard::class);
     }
 
     /**

@@ -7,17 +7,54 @@ namespace App\Classes;
  * Dartboard
  */
 class Dartboard
-{
-    /**
-     * @var array
-     */
-    public const FIELD_VALUES = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9 ,12, 5];
-        
+{       
     /**
      * @var array
      */
     public $board;
+
+    /**
+     * @var array
+     */
+    public const WEDGE_VALUES = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+
+    /**
+     * Radius = plural radii or radiuses
+     * 
+     * Field/Wedge thickness = 8
+     * 
+     * 1. Bull
+     * 2. Bullseye
+     * 3. (inner) Tripple
+     * 4. (outer) Tripple
+     * 3. (inner) Double
+     * 4. (outer) Double
+     * 
+     * @var array
+     */
+    public const RING_RADII_RATIO = [3.75, 5.61, 48.89, 4.70, 32.35, 4.7];
+
+    /**
+     * 
+     * 
+     */
+    public const MULTIPLIERS = [1, 1, 1, 2, 1, 3];
     
+    /**
+     * 
+     */
+    public $wireThickness = 0;
+
+    /**
+     * 
+     */
+    public $outerRadius = 170;
+
+    /**
+     * 
+     */
+    public $radiusScalar = 1;
+
     /**
      *
      * @return void
@@ -45,22 +82,29 @@ class Dartboard
 
     /**
      * 
-     * @param array|null $field_values
+     * @param array|null $wedge_values
      * @param bool $extra
      * @return array
      */
-    public function generateBoard(array $field_values = null, bool $extra = false) 
+    public function generateBoard(array $wedge_values = null, bool $extra = false) 
     {
         $board = array();
-        $values = $field_values ? $field_values : $this::FIELD_VALUES;
+        $values = $wedge_values ?? $this::WEDGE_VALUES;
         
         if($extra) {
-            array_unshift($values, $field_values ? $field_values[sizeof($field_values)-1] : $this::FIELD_VALUES[sizeof($this::FIELD_VALUES)-1]);
+            array_unshift( $values, $wedge_values ? end($wedge_values) : end($this::WEDGE_VALUES) );
             $values[] = $values[1];
         }
 
         foreach($values as $v) {
-            $board[] = [$v*2, $v, $v*3, $v, 25, 50];
+            $board[] = [
+                new Wedge("D".$v*2), 
+                new Wedge($v),
+                new Wedge("T".$v*3), 
+                new Wedge($v), 
+                new Wedge(25),
+                new Wedge(50)
+            ];
         }
 
         return $board;
@@ -99,7 +143,7 @@ class Dartboard
 
         foreach($board as $i => $r)
             foreach($r as $j => $c) {
-                $mappedValue = ($this->map($board[$i][$j], $minThreshold, $this->getMaxValue($board)*$maxScalar, 0, 100))/100;
+                $mappedValue = (Utillity::map($board[$i][$j], $minThreshold, $this->getMaxValue($board)*$maxScalar, 0, 100))/100;
                 $heat[$i][$j] = $mappedValue < 0 ? 0 : ($twoDecimal ? round($mappedValue, 2) : $mappedValue);
             }
 
@@ -107,13 +151,13 @@ class Dartboard
     }
 
     /**
-     * Calculates average of nearest neighbour field values
+     * Calculates average of nearest neighbour wedge values
      * 
      * @return array
      */
     public function calculateBoardAverages()
     {
-        $board = $this->generateBoard($this::FIELD_VALUES, true);
+        $board = $this->generateBoard($this::WEDGE_VALUES, true);
         $newBoard = array();
 
         $row_size = sizeOf($board)-1;
@@ -164,35 +208,90 @@ class Dartboard
     }
 
     /**
-     * Find the corresponding value from a certain domain to another domain
      * 
-     * Example: 
-     * - Input range: 0deg - 180deg
-     * - desired Out range: 0 - 1023
-     * - 0deg crresponds to 0 and 180deg corresponds to 1023
-     * - When x is 180deg/2 then the method would return 1023/2
-     * 
-     * 
-     * @param float $x
-     * @param float $in_min
-     * @param float $in_max
-     * @param float $out_min
-     * @param float $out_max
-     * @return int|float value range [0, 1]
      */
-    public function map(float $x, float $in_min, float $in_max, float $out_min, float $out_max)
+    public function getRadii()
     {
-        return ($x - $in_min) * ($out_max - $out_min) / ($in_max - $in_min) + $out_min;
+        $sizes = array();
+        $last = 0;
+        $total = 0;
+
+        // convert ratios to actual radii
+        foreach($this::RING_RADII_RATIO as $ratio) {
+            $radius = (( ($ratio*$this->outerRadius) / 100.0)  * $this->radiusScalar) + $last;
+            $sizes[] = $radius; 
+            $last = $radius;
+        }
+
+        return $sizes;
     }
 
     /**
-     * Transpose given array. Switch rows and columns
      * 
-     * @param array $array
-     * @return array that is transposed
+     * 
      */
-    public function transpose(array $array)
+    public function raddiToRatios(array $radii) 
     {
-        return array_map(null, ...$array);
+        $ratios = array();
+        $total = array_sum($radii);
+
+        foreach($radii as $radius) {
+            $ratios[] = ($radius / $total) * 100;
+        }
+
+        return $ratios;
+    }
+
+    
+    /**
+     * 
+     * 
+     */
+    public function getWedgeValue(float $rORx, float $ThetaORy, bool $formatPolar = true)
+    {
+
+        if(!$formatPolar) {
+            $polarCoords = Utillity::CartesianToPolar($rORx, $ThetaORy);
+            $r = $polarCoords[0];
+            $theta = $polarCoords[1];
+        } else {
+            $r = $rORx;
+            $theta = $ThetaORy;
+        }
+
+        $radii = $this->getRadii();
+        
+        if($r <= $radii[0])
+            return 50;
+
+        // throw is out of bounds
+        if($r > end($radii))
+            return 0;
+        
+        if($theta > 360.0)
+            $theta = fmod($theta, 360.0);
+
+        $wedgeAngle = 360 / sizeOf($this::WEDGE_VALUES);
+        $offset = $wedgeAngle / 2;
+        $multiplier = 0;
+        
+        // wedge center
+        $value = ( $theta / $wedgeAngle );
+
+        // wedge right edge
+        // $value = ( ( $theta+$offset ) / $wedgeAngle );
+
+        // get the multiplier
+        for($i = 0; $i <= sizeof($radii)-1; $i++) 
+            if($r > $radii[$i] && $r <= $radii[$i+1]) {
+
+                $multiplier = $this::MULTIPLIERS[$i+1];
+                if($i == 0)
+                    $value = 25;
+
+                break;
+            }
+
+        return new Wedge(null, $multiplier);
     }
 }

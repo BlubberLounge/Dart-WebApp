@@ -31,4 +31,27 @@ class Dartboard extends Model
     {
         return $this->hasMany(Game::class);
     }
+
+    /**
+     * Get only dartboards with active flag = true
+     */
+    public function getAllActive()
+    {
+        return $this->where('active', true)->get();
+    }
+
+    /**
+     * 
+     */
+    public function isAvailable()
+    {
+        return Game::where('dartboard_id', $this->id)
+            ->whereNot(function ($query)
+            {
+                $query->where('state', 'FINISHED')
+                    ->orWhere('state', 'STOPPED')
+                    ->orWhere('state', 'CLOSED');
+            })
+            ->count() > 0 ? false : true;
+    }
 }
